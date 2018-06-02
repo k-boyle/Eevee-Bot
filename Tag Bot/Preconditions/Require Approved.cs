@@ -14,7 +14,7 @@ namespace TagBot.Preconditions
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var service = services.GetService<DatabaseService>();
-            return service.GetUsers(context.Guild.Id).Contains(context.User.Id)
+            return service.GetApproved(context.Guild.Id).Contains(context.User.Id)
                 ? Task.FromResult(PreconditionResult.FromSuccess())
                 : Task.FromResult(PreconditionResult.FromError("You do not have permission to use this command"));
         }

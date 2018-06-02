@@ -80,6 +80,52 @@ namespace TagBot.Services
             UpdateTags(context);
         }
 
+        public void AddApproved(SocketCommandContext context, ulong userId)
+        {
+            _approvedUsers[context.Guild.Id].Add(userId);
+            UpdateApproved(context);
+        }
+
+        public void RemoveApproved(SocketCommandContext context, ulong userId)
+        {
+            _approvedUsers[context.Guild.Id].Remove(userId);
+            UpdateApproved(context);
+        }
+
+        private void UpdateApproved(SocketCommandContext context)
+        {
+            using (var db = new LiteDatabase(DatabaseDir))
+            {
+                var guilds = db.GetCollection<GuildObject>("guilds");
+                var guild = guilds.FindOne(x => x.GuildId == context.Guild.Id);
+                guild.ApprovedUsers = _approvedUsers[context.Guild.Id];
+                guilds.Update(guild);
+            }
+        }
+
+        public void AddBlacklisted(SocketCommandContext context, ulong userId)
+        {
+            _blacklistedUsers[context.Guild.Id].Add(userId);
+            UpdateBlacklisted(context);
+        }
+
+        public void RemoveBlacklsited(SocketCommandContext context, ulong userId)
+        {
+            _blacklistedUsers[context.Guild.Id].Remove(userId);
+            UpdateBlacklisted(context);
+        }
+
+        private void UpdateBlacklisted(SocketCommandContext context)
+        {
+            using (var db = new LiteDatabase(DatabaseDir))
+            {
+                var guilds = db.GetCollection<GuildObject>("guilds");
+                var guild = guilds.FindOne(x => x.GuildId == context.Guild.Id);
+                guild.BlacklistedUsers = _blacklistedUsers[context.Guild.Id];
+                guilds.Update(guild);
+            }
+        }
+
         private void UpdateTags(SocketCommandContext context)
         {
             using (var db = new LiteDatabase(DatabaseDir))
@@ -96,7 +142,7 @@ namespace TagBot.Services
             return _currentTags[guildId];
         }
 
-        public List<ulong> GetUsers(ulong guildId)
+        public List<ulong> GetApproved(ulong guildId)
         {
             return _approvedUsers[guildId];
         }
