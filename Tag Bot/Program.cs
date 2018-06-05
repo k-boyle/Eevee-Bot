@@ -45,7 +45,7 @@ namespace TagBot
                 .AddSingleton<Func<LogMessage, Task>>(LogMethod)
                 .BuildServiceProvider();
 
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("Tag Bot"));
+            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("TagBot"));
             await _client.StartAsync();
 
             _client.Ready += () =>

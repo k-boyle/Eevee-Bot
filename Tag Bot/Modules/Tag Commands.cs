@@ -20,7 +20,7 @@ namespace TagBot.Modules
             _commands = commands;
         }
 
-        [Command("tag"), Name("Tag"), Summary("Get a tag for this guild")]
+        [Command("tag"), Alias("t"), Name("Tag"), Summary("Get a tag for this guild")]
         public async Task GetTag([Name("Name of tag"), Summary("The name of the tag you want to fetch"), Remainder] string tagName)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
