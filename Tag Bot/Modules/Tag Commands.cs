@@ -6,10 +6,11 @@ using Discord;
 using Discord.WebSocket;
 using TagBot.Preconditions;
 using TagBot.Services;
+using Discord.Addons.Interactive;
 
 namespace TagBot.Modules
 {
-    public class TagCommands : ModuleBase<SocketCommandContext>
+    public class TagCommands : InteractiveBase<SocketCommandContext>
     {
         private readonly DatabaseService _service;
         private readonly CommandService _commands;
@@ -68,7 +69,7 @@ namespace TagBot.Modules
             var currentTags = _service.GetTags(Context.Guild.Id);
             var msg = await Context.Channel.SendMessageAsync($"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
             await Task.Delay(TimeSpan.FromSeconds(30));
-            await msg.DeleteAsync();            
+            await msg.DeleteAsync();
         }
 
         [Command("help", RunMode = RunMode.Async)]
@@ -103,7 +104,7 @@ namespace TagBot.Modules
             await msg.DeleteAsync();
         }
 
-        [Command("create"), Name("Create Tag"), Summary("Creates a new tag for the guild"), RequireNotBlacklisted]
+        [Command("create"), Name("Create Tag"), Summary("Creates a new tag for the guild. This requires an approved user"), RequireApproved]
         public async Task CreateTag([Name("Tag Name")]string tagName, [Name("Tag Value"), Remainder] string tagValue)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
@@ -116,7 +117,7 @@ namespace TagBot.Modules
             await Context.Channel.SendMessageAsync($"{tagName} has been created");
         }
 
-        [Command("delete"), Name("Delete Tag"), Summary("Delete a tag on the guild. This requires either an approved person or the tag creator"), RequireNotBlacklisted]
+        [Command("delete"), Name("Delete Tag"), Summary("Delete a tag on the guild. This requires an approved user"), RequireApproved]
         public async Task DeleteTag([Name("Tag To Delete"), Remainder] string tagName)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
@@ -136,7 +137,7 @@ namespace TagBot.Modules
             await Context.Channel.SendMessageAsync("Tag has been deleted");
         }
 
-        [Command("modify"), Name("Modify Tag"), Summary("Modify a tag on the guild. This requires either an approved person or the tag creator"), RequireNotBlacklisted]
+        [Command("modify"), Name("Modify Tag"), Summary("Modify a tag on the guild. This requires an approved user"), RequireApproved]
         public async Task ModifyTag([Name("Tag Name")]string tagName, [Name("New Tag Value"), Remainder] string newValue)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
@@ -180,32 +181,6 @@ namespace TagBot.Modules
             }
             _service.RemoveApproved(Context, toUnapprove.Id);
             await Context.Channel.SendMessageAsync("User has been unapproved");
-        }
-
-        [Command("blacklist"), Name("Blacklist User"), Summary("Add a user to the blacklisted users list. This requires an approved user"), RequireApproved]
-        public async Task BlacklistMember([Name("User To Blacklist"), Remainder]SocketGuildUser toBlacklist)
-        {
-            var current = _service.GetBlacklisted(Context.Guild.Id);
-            if (current.Contains(toBlacklist.Id))
-            {
-                await Context.Channel.SendMessageAsync("This user is already blacklisted");
-                return;
-            }
-            _service.AddBlacklisted(Context, toBlacklist.Id);
-            await Context.Channel.SendMessageAsync("User has been blacklisted");
-        }
-
-        [Command("unblacklist"), Name("Unblacklist User"), Summary("Remove a user from the blacklisted users list. This requires an approved user"), RequireApproved]
-        public async Task UnBlacklistMember([Name("User To Unblacklist"), Remainder]SocketGuildUser toUnBlacklist)
-        {
-            var current = _service.GetBlacklisted(Context.Guild.Id);
-            if (!current.Contains(toUnBlacklist.Id))
-            {
-                await Context.Channel.SendMessageAsync("This user is not blacklisted");
-                return;
-            }
-            _service.RemoveBlacklsited(Context, toUnBlacklist.Id);
-            await Context.Channel.SendMessageAsync("User has been unblacklisted");
         }
     }
 }

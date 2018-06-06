@@ -21,7 +21,6 @@ namespace TagBot.Entities
 
         public List<TagObject> Tags { get; set; } = new List<TagObject>();
         public List<ulong> ApprovedUsers { get; set; } = new List<ulong>();
-        public List<ulong> BlacklistedUsers { get; set; } = new List<ulong>();
     }
 
     public class TagObject

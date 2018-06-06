@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using Discord.Addons.Interactive;
 using TagBot.Services;
 
 namespace TagBot
@@ -41,6 +42,7 @@ namespace TagBot
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
                 .AddSingleton<ReliabilityService>()
+                .AddSingleton<InteractiveService>()
                 .AddSingleton<DatabaseService>()
                 .AddSingleton<Func<LogMessage, Task>>(LogMethod)
                 .BuildServiceProvider();
