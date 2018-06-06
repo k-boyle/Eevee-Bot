@@ -68,7 +68,7 @@ namespace TagBot.Modules
             var currentTags = _service.GetTags(Context.Guild.Id);
             var msg = await Context.Channel.SendMessageAsync($"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
             await Task.Delay(TimeSpan.FromSeconds(30));
-            await msg.DeleteAsync();
+            await msg.DeleteAsync();            
         }
 
         [Command("help", RunMode = RunMode.Async)]

@@ -50,6 +50,7 @@ namespace TagBot
 
             _client.Ready += () =>
             {
+                //await _client.CurrentUser.ModifyAsync(x => x.Username = "Eevee");
                 _services.GetService<DatabaseService>().Initialise();
                 return Task.CompletedTask;
             };
