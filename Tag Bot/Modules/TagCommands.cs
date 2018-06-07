@@ -34,7 +34,7 @@ namespace TagBot.Modules
                 var containsTags = currentTags.Where(x => x.TagName.Contains(tagName.ToLower()));
                 var totalTags = levenTags.Union(containsTags);
 
-                await Context.Channel.SendMessageAsync($"{(totalTags.Any() ? $"Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}");
+                await _message.SendMessage(Context, $"{(totalTags.Any() ? $"Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}", null);
                 return;
             }
 

@@ -37,7 +37,10 @@ namespace TagBot
                 {
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
-                        await context.Channel.SendMessageAsync(result.ErrorReason);
+                    {
+                        var channel = context.Client.GetChannel(443162366360682508) as SocketTextChannel;
+                        await channel.SendMessageAsync($"{context.Guild.Name} | {context.Channel.Name} : {result.ErrorReason}");
+                    }
                 }
             }
         }
