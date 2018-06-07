@@ -24,7 +24,7 @@ namespace TagBot.Services
             _client = client;
             _timer = new Timer(async _ =>
                 {
-                    var channel = _client.GetChannel(_currentMessage.channelId) as SocketTextChannel;
+                    if (!(_client.GetChannel(_currentMessage.channelId) is SocketTextChannel channel)) return;
                     var msg = await channel.GetMessageAsync(_currentMessage.messageId);
                     await msg.DeleteAsync();
                     _messages.Remove(_currentMessage);
