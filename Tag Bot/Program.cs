@@ -24,7 +24,7 @@ namespace TagBot
             {
                 AlwaysDownloadUsers = true,
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 100
+                MessageCacheSize = 20
             });
 
             _client.Log += LogMethod;
@@ -44,19 +44,20 @@ namespace TagBot
                 .AddSingleton<ReliabilityService>()
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<DatabaseService>()
+                .AddSingleton<MessageService>()
                 .AddSingleton<Func<LogMessage, Task>>(LogMethod)
                 .BuildServiceProvider();
 
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("TagBot"));
+            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("Tag Bot"));
             await _client.StartAsync();
 
-            _client.Ready += () =>
+            _client.Ready += () => 
             {
-                //await _client.CurrentUser.ModifyAsync(x => x.Username = "Eevee");
                 _services.GetService<DatabaseService>().Initialise();
                 return Task.CompletedTask;
             };
 
+            
             var handler = new CommandHandler(_client, _commands, _services);
             await handler.InitiateAsync();
 

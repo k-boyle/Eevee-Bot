@@ -16,6 +16,7 @@ namespace TagBot.Services
         private const string DatabaseDir = @".\Database.db";
         private readonly Func<LogMessage, Task> _logMethod;
         private readonly DiscordSocketClient _client;
+        private bool hasRun = false;
 
         public DatabaseService(Func<LogMessage, Task> logMethod, DiscordSocketClient client)
         {
@@ -28,6 +29,7 @@ namespace TagBot.Services
 
         public void Initialise()
         {
+            if (hasRun) return;
             using (var db = new LiteDatabase(DatabaseDir))
             {
                 if (!db.CollectionExists("guilds"))
@@ -44,6 +46,9 @@ namespace TagBot.Services
                     _approvedUsers.Add(guild.Id, dbGuild.ApprovedUsers);
                 }
             }
+
+            _logMethod.Invoke(new LogMessage(LogSeverity.Info, LogSource, "Database has been loaded"));
+            hasRun = true;
         }
 
         public async Task AddNewGuild(ulong guildId)

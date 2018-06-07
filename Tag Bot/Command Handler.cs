@@ -33,7 +33,7 @@ namespace TagBot
 
                 var context = new SocketCommandContext(_client, message);
                 var argPos = 0;
-                if (context.Message.HasStringPrefix("ev?", ref argPos))
+                if (context.Message.HasStringPrefix("ev!", ref argPos))
                 {
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
