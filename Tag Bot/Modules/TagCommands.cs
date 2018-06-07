@@ -96,7 +96,7 @@ namespace TagBot.Modules
                 {
                     f.Name = $"**{cmd.Name}**";
                     f.Value = $"Summary: {cmd.Summary}\n" +
-                              $"Usage: *dnet {cmd.Aliases.FirstOrDefault()} {(cmd.Parameters.Any() ? $"{string.Join(" ", cmd.Parameters.Select(y => $"`{y.Name}`{(y.Summary != null ? $"\n{y.Name} - {y.Summary}" : "")}"))}" : "")}";
+                              $"Usage: ev?{cmd.Aliases.FirstOrDefault()} {(cmd.Parameters.Any() ? $"{string.Join(" ", cmd.Parameters.Select(y => $"`{y.Name}`{(y.Summary != null ? $"\n{y.Name} - {y.Summary}" : "")}"))}" : "")}";
                 });
             }
 
