@@ -15,19 +15,19 @@ namespace TagBot.Services
         private readonly Timer _timer;
         private readonly DiscordSocketClient _client;
         private List<MessageModel> _messages = new List<MessageModel>();
-
-        private MessageModel
-            _currentMessage = new MessageModel(0, 0, 0, DateTime.MaxValue, DateTimeOffset.MaxValue);
-
+        
         public MessageService(DiscordSocketClient client)
         {
             _client = client;
             _timer = new Timer(async _ =>
                 {
-                    if (!(_client.GetChannel(_currentMessage.channelId) is SocketTextChannel channel)) return;
-                    var msg = await channel.GetMessageAsync(_currentMessage.messageId);
+                    if (!_messages.Any()) return;
+                    var currentMessage = _messages.FirstOrDefault();
+                    var channel = _client.GetChannel(currentMessage.channelId) as SocketTextChannel;
+                    if (channel is null) return;
+                    var msg = await channel.GetMessageAsync(currentMessage.messageId);
                     await msg.DeleteAsync();
-                    _messages.Remove(_currentMessage);
+                    _messages.Remove(currentMessage);
                     SetTime();
                 }, 
                 null, 
@@ -48,15 +48,15 @@ namespace TagBot.Services
         {
             CleanseMessages();
             if (!_messages.Any()) return;
-            _currentMessage = _messages.FirstOrDefault();
-            if (_currentMessage.timeout < DateTime.UtcNow)
+            var currentMessage = _messages.FirstOrDefault();
+            if (currentMessage.timeout < DateTime.UtcNow)
             {
-                _messages.Remove(_currentMessage);
+                _messages.Remove(currentMessage);
                 return;
             }
 
-            if (_currentMessage.timeout == DateTime.MaxValue) return;
-            _timer.Change(_currentMessage.timeout - DateTime.UtcNow, TimeSpan.Zero);
+            if (currentMessage.timeout == DateTime.MaxValue) return;
+            _timer.Change(currentMessage.timeout - DateTime.UtcNow, TimeSpan.Zero);
         }
 
         public async Task ClearMessages(SocketCommandContext context)

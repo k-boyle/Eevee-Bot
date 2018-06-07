@@ -64,7 +64,7 @@ namespace TagBot.Modules
             return distances[lengthA, lengthB];
         }
 
-        [Command("tags"/*, RunMode = RunMode.Async*/), Name("List Tags"), Summary("Lists all the tags for the guild")]
+        [Command("tags"), Name("List Tags"), Summary("Lists all the tags for the guild")]
         public async Task GetTags()
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
