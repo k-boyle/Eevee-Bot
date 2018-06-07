@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TagBot.Entities;
 
 namespace TagBot.Services
 {
@@ -13,10 +14,10 @@ namespace TagBot.Services
     {
         private readonly Timer _timer;
         private readonly DiscordSocketClient _client;
-        private List<(ulong userId, ulong channelId, ulong messageId, DateTime timeout, DateTimeOffset createdAt)> _messages = new List<(ulong userId, ulong channelId, ulong messageId, DateTime timeout, DateTimeOffset createdAt)>();
+        private List<MessageModel> _messages = new List<MessageModel>();
 
-        private (ulong userId, ulong channelId, ulong messageId, DateTime timeout, DateTimeOffset createdAt)
-            _currentMessage = (0, 0, 0, DateTime.MaxValue, DateTimeOffset.MaxValue);
+        private MessageModel
+            _currentMessage = new MessageModel(0, 0, 0, DateTime.MaxValue, DateTimeOffset.MaxValue);
 
         public MessageService(DiscordSocketClient client)
         {
@@ -37,7 +38,7 @@ namespace TagBot.Services
         public async Task SendMessage(SocketCommandContext context, string message, TimeSpan? timeout)
         {
             var msg = await context.Channel.SendMessageAsync(message);
-            var item = (context.User.Id, context.Channel.Id, msg.Id, (timeout.HasValue ? DateTime.UtcNow.Add(timeout.Value) : DateTime.MaxValue), msg.CreatedAt);
+            var item = new MessageModel(context.User.Id, context.Channel.Id, msg.Id, (timeout.HasValue ? DateTime.UtcNow.Add(timeout.Value) : DateTime.MaxValue), msg.CreatedAt);
             _messages.Add(item);
             _messages = _messages.OrderBy(x => x.timeout).ToList();
             SetTime();
@@ -46,6 +47,7 @@ namespace TagBot.Services
         private void SetTime()
         {
             CleanseMessages();
+            if (!_messages.Any()) return;
             _currentMessage = _messages.FirstOrDefault();
             if (_currentMessage.timeout < DateTime.UtcNow)
             {

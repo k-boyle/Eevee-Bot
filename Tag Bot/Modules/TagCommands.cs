@@ -6,11 +6,10 @@ using Discord;
 using Discord.WebSocket;
 using TagBot.Preconditions;
 using TagBot.Services;
-using Discord.Addons.Interactive;
 
 namespace TagBot.Modules
 {
-    public class TagCommands : InteractiveBase<SocketCommandContext>
+    public class TagCommands : ModuleBase<SocketCommandContext>
     {
         private readonly DatabaseService _service;
         private readonly CommandService _commands;
