@@ -16,7 +16,7 @@ namespace TagBot.Services
         private const string DatabaseDir = @".\Database.db";
         private readonly Func<LogMessage, Task> _logMethod;
         private readonly DiscordSocketClient _client;
-        private bool hasRun = false;
+        private bool hasRun;
 
         public DatabaseService(Func<LogMessage, Task> logMethod, DiscordSocketClient client)
         {

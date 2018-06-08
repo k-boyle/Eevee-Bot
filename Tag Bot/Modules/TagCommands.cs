@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using Discord;
 using Discord.Commands;
-using System.Threading.Tasks;
-using Discord;
 using Discord.WebSocket;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using TagBot.Preconditions;
 using TagBot.Services;
 
@@ -69,11 +69,10 @@ namespace TagBot.Modules
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
             await _message.SendMessage(Context,
-                $"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}",
-                TimeSpan.FromSeconds(30));
+                $"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
         }
 
-        [Command("help", RunMode = RunMode.Async)]
+        [Command("help")]
         public async Task GetHelp()
         {
             var availableCommands = _commands.Commands.Where(x => x.Name != "help");
@@ -99,10 +98,7 @@ namespace TagBot.Modules
                               $"Usage: ev?{cmd.Aliases.FirstOrDefault()} {(cmd.Parameters.Any() ? $"{string.Join(" ", cmd.Parameters.Select(y => $"`{y.Name}`{(y.Summary != null ? $"\n{y.Name} - {y.Summary}" : "")}"))}" : "")}";
                 });
             }
-
-            var msg = await Context.Channel.SendMessageAsync("", embed: builder.Build());
-            await Task.Delay(TimeSpan.FromSeconds(30));
-            await msg.DeleteAsync();
+            await _message.SendMessage(Context, null, builder.Build());
         }
 
         [Command("create"), Name("Create Tag"), Summary("Creates a new tag for the guild. This requires an approved user"), RequireApproved]

@@ -1,6 +1,5 @@
 ﻿using LiteDB;
 using System.Collections.Generic;
-using System.Net;
 
 namespace TagBot.Entities
 {

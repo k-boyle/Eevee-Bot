@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TagBot.Entities
 {
     public class MessageModel
     {
-        public ulong userId { get; set; }
-        public ulong channelId { get; set; }
-        public ulong messageId { get; set; }
-        public DateTime timeout { get; set; }
-        public DateTimeOffset createdAt { get; set; }
+        public ulong UserId { get; }
+        public ulong ChannelId { get; }
+        public ulong MessageId { get; }
+        public DateTimeOffset CreatedAt { get; }
 
-        public MessageModel(ulong userId, ulong channelId, ulong messageId, DateTime timeout, DateTimeOffset createdAt)
+        public MessageModel(ulong userId, ulong channelId, ulong messageId, DateTimeOffset createdAt)
         {
-            this.userId = userId;
-            this.channelId = channelId;
-            this.messageId = messageId;
-            this.timeout = timeout;
-            this.createdAt = createdAt;
+            UserId = userId;
+            ChannelId = channelId;
+            MessageId = messageId;
+            CreatedAt = createdAt;
         }
     }
 }
