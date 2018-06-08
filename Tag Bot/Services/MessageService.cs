@@ -39,12 +39,18 @@ namespace TagBot.Services
 
         private void MessagePurge()
         {
+            var toDelete = new List<MessageModel>();
             foreach (var msg in _messages)
             {
                 if (DateTime.UtcNow - msg.CreatedAt > TimeSpan.FromMinutes(5))
                 {
-                    _messages.Remove(msg);
+                    toDelete.Add(msg);
                 }
+            }
+
+            foreach (var deleted in toDelete)
+            {
+                _messages.Remove(deleted);
             }
         }
     }
