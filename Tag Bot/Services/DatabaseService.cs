@@ -60,6 +60,12 @@ namespace TagBot.Services
                 await _logMethod.Invoke(new LogMessage(LogSeverity.Info, LogSource,
                     $"Inserting {guildId} into the database"));
                 guilds.Insert(new GuildObject(guildId, (await _client.GetApplicationInfoAsync()).Owner.Id, _client.GetGuild(guildId).OwnerId));
+                _currentTags.Add(guildId, new List<TagObject>());
+                _approvedUsers.Add(guildId, new List<ulong>()
+                {
+                    _client.CurrentUser.Id,
+                    _client.GetGuild(guildId).OwnerId
+                });
             }
         }
 

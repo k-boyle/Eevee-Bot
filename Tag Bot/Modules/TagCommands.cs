@@ -101,7 +101,7 @@ namespace TagBot.Modules
         }
 
         [Command("create"), Name("Create Tag"), Summary("Creates a new tag for the guild. This requires an approved user"), RequireApproved]
-        public async Task CreateTag([Name("Tag Name")]string tagName, [Name("Tag Value"), Remainder] string tagValue)
+        public async Task CreateTag([Name("Tag Name"), Summary("The name of the tag")]string tagName, [Name("Tag Value"), Summary("What you want the tag to say in response"), Remainder] string tagValue)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
             if (currentTags.Any(x => x.TagName == tagName.ToLower()))
@@ -114,7 +114,7 @@ namespace TagBot.Modules
         }
 
         [Command("delete"), Name("Delete Tag"), Summary("Delete a tag on the guild. This requires an approved user"), RequireApproved]
-        public async Task DeleteTag([Name("Tag To Delete"), Remainder] string tagName)
+        public async Task DeleteTag([Name("Tag To Delete"), Summary("The name of the tag that you want to delete"), Remainder] string tagName)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
@@ -128,7 +128,7 @@ namespace TagBot.Modules
         }
 
         [Command("modify"), Name("Modify Tag"), Summary("Modify a tag on the guild. This requires an approved user"), RequireApproved]
-        public async Task ModifyTag([Name("Tag Name")]string tagName, [Name("New Tag Value"), Remainder] string newValue)
+        public async Task ModifyTag([Name("Tag Name"), Summary("Name of the tag you want to modify")]string tagName, [Name("New Tag Value"), Summary("The new value that you want to respond with"), Remainder] string newValue)
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
@@ -142,7 +142,7 @@ namespace TagBot.Modules
         }
 
         [Command("approve"), Name("Approve User"), Summary("Add a user to the approved users list. This requires the bot owner"), RequireOwner]
-        public async Task ApproveUser([Name("User To Approve"), Remainder]SocketGuildUser toApprove)
+        public async Task ApproveUser([Name("User To Approve"), Summary("The mention/name/id of the uder you want to approve"), Remainder]SocketGuildUser toApprove)
         {
             var current = _service.GetApproved(Context.Guild.Id);
             if (current.Contains(toApprove.Id))
@@ -155,7 +155,7 @@ namespace TagBot.Modules
         }
 
         [Command("unapprove"), Name("Unapprove User"), Summary("Remove a user from the approved users list. This requires the bot owner"), RequireOwner]
-        public async Task UnapproveUser([Name("User To Unapprove"), Remainder]SocketGuildUser toUnapprove)
+        public async Task UnapproveUser([Name("User To Unapprove"), Summary("The mention/name/id of the uder you want to unapprove"), Remainder]SocketGuildUser toUnapprove)
         {
             var current = _service.GetApproved(Context.Guild.Id);
             if (!current.Contains(toUnapprove.Id))
@@ -165,6 +165,13 @@ namespace TagBot.Modules
             }
             _service.RemoveApproved(Context, toUnapprove.Id);
             await _message.SendMessage(Context, "User has been unapproved");
+        }
+
+        [Command("approved"), Name("List Approved"), Summary("See all of the approved users for this guild")]
+        public async Task ListApproved()
+        {
+            var users = _service.GetApproved(Context.Guild.Id).Select(x => $"{Context.Guild.GetUser(x).Nickname ?? Context.Guild.GetUser(x).Username}");
+            await _message.SendMessage(Context, $"Approved users are:\n{string.Join(", ", users)}");
         }
 
         [Command("cleanse"), Alias("c"), Name("Cleanse Messages"), Summary("Removes all the response my Eevee Bot to you in the last 5 minutes")]
