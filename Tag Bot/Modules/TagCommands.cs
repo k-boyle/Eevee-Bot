@@ -27,7 +27,6 @@ namespace TagBot.Modules
         {
             var currentTags = _service.GetTags(Context.Guild.Id);
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
-            
             if (targetTag is null)
             {
                 var levenTags = currentTags.Where(x => CalcLevenshteinDistance(tagName.ToLower(), x.TagName) < 5);
@@ -107,11 +106,11 @@ namespace TagBot.Modules
             var currentTags = _service.GetTags(Context.Guild.Id);
             if (currentTags.Any(x => x.TagName == tagName.ToLower()))
             {
-                await _message.SendMessage(Context, "This tag already exists", null);
+                await _message.SendMessage(Context, "This tag already exists");
                 return;
             }
             _service.AdddNewTag(Context, tagName.ToLower(), tagValue);
-            await _message.SendMessage(Context, $"{tagName} has been created", null);
+            await _message.SendMessage(Context, $"{tagName} has been created");
         }
 
         [Command("delete"), Name("Delete Tag"), Summary("Delete a tag on the guild. This requires an approved user"), RequireApproved]
@@ -121,11 +120,11 @@ namespace TagBot.Modules
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
             if (targetTag is null)
             {
-                await _message.SendMessage(Context, "This tag does not exists", null);
+                await _message.SendMessage(Context, "This tag does not exists");
                 return;
             }
             _service.DeleteTag(Context, tagName.ToLower());
-            await _message.SendMessage(Context, "Tag has been deleted", null);
+            await _message.SendMessage(Context, "Tag has been deleted");
         }
 
         [Command("modify"), Name("Modify Tag"), Summary("Modify a tag on the guild. This requires an approved user"), RequireApproved]
@@ -135,11 +134,11 @@ namespace TagBot.Modules
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
             if (targetTag is null)
             {
-                await _message.SendMessage(Context, "Tag could not be found", null);
+                await _message.SendMessage(Context, "Tag could not be found");
                 return;
             }
             _service.ModifyTag(Context, tagName.ToLower(), newValue);
-            await Context.Channel.SendMessageAsync("Tag has been modified");
+            await _message.SendMessage(Context, "Tag has been modified");
         }
 
         [Command("approve"), Name("Approve User"), Summary("Add a user to the approved users list. This requires the bot owner"), RequireOwner]
@@ -148,11 +147,11 @@ namespace TagBot.Modules
             var current = _service.GetApproved(Context.Guild.Id);
             if (current.Contains(toApprove.Id))
             {
-                await _message.SendMessage(Context, "This user is already approved", null);
+                await _message.SendMessage(Context, "This user is already approved");
                 return;
             }
             _service.AddApproved(Context, toApprove.Id);
-            await _message.SendMessage(Context, "User has been approved", null);
+            await _message.SendMessage(Context, "User has been approved");
         }
 
         [Command("unapprove"), Name("Unapprove User"), Summary("Remove a user from the approved users list. This requires the bot owner"), RequireOwner]
@@ -165,7 +164,7 @@ namespace TagBot.Modules
                 return;
             }
             _service.RemoveApproved(Context, toUnapprove.Id);
-            await Context.Channel.SendMessageAsync("User has been unapproved");
+            await _message.SendMessage(Context, "User has been unapproved");
         }
 
         [Command("cleanse"), Alias("c"), Name("Cleanse Messages"), Summary("Removes all the response my Eevee Bot to you in the last 5 minutes")]

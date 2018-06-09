@@ -54,7 +54,6 @@ namespace TagBot
                 _services.GetService<DatabaseService>().Initialise();
                 return Task.CompletedTask;
             };
-
             
             var handler = new CommandHandler(_client, _commands, _services);
             await handler.InitiateAsync();
