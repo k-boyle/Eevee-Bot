@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Linq;
@@ -33,11 +32,11 @@ namespace TagBot.Modules
                 var containsTags = currentTags.Where(x => x.TagName.Contains(tagName.ToLower()));
                 var totalTags = levenTags.Union(containsTags);
 
-                await _message.SendMessage(Context, $"{(totalTags.Any() ? $"Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}", null);
+                await _message.SendMessageAsync(Context, $"{(totalTags.Any() ? $"Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}", null);
                 return;
             }
 
-            await _message.SendMessage(Context, targetTag.TagValue, null);
+            await _message.SendMessageAsync(Context, targetTag.TagValue, null);
         }
 
         private static int CalcLevenshteinDistance(string a, string b)
@@ -67,7 +66,7 @@ namespace TagBot.Modules
         public async Task GetTags()
         {
             var currentTags = _service.GetTags(Context.Guild.Id).OrderBy(x => x.TagName);
-            await _message.SendMessage(Context,
+            await _message.SendMessageAsync(Context,
                 $"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
         }
 
@@ -76,7 +75,7 @@ namespace TagBot.Modules
         {
             var availableCommands = _commands.Commands.Where(x => x.Name != "help");
             var i = 0;
-            await _message.SendMessage(Context,
+            await _message.SendMessageAsync(Context,
                 $"Available Commands:\n{string.Join("\n", availableCommands.Select(x => $"{++i} - ev?**{x.Aliases.FirstOrDefault()}** {(x.Parameters.Any() ? $"{string.Join(" ", x.Parameters.Select(y => $"`{y.Name}`"))}" : "")}"))}");
         }
 
@@ -86,11 +85,11 @@ namespace TagBot.Modules
             var currentTags = _service.GetTags(Context.Guild.Id);
             if (currentTags.Any(x => x.TagName == tagName.ToLower()))
             {
-                await _message.SendMessage(Context, "This tag already exists");
+                await _message.SendMessageAsync(Context, "This tag already exists");
                 return;
             }
             _service.AdddNewTag(Context, tagName.ToLower(), tagValue);
-            await _message.SendMessage(Context, $"{tagName} has been created");
+            await _message.SendMessageAsync(Context, $"{tagName} has been created");
         }
 
         [Command("delete"), Name("Delete Tag"), Summary("Delete a tag on the guild. This requires an approved user"), RequireApproved]
@@ -100,11 +99,11 @@ namespace TagBot.Modules
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
             if (targetTag is null)
             {
-                await _message.SendMessage(Context, "This tag does not exists");
+                await _message.SendMessageAsync(Context, "This tag does not exists");
                 return;
             }
             _service.DeleteTag(Context, tagName.ToLower());
-            await _message.SendMessage(Context, "Tag has been deleted");
+            await _message.SendMessageAsync(Context, "Tag has been deleted");
         }
 
         [Command("modify"), Name("Modify Tag"), Summary("Modify a tag on the guild. This requires an approved user"), RequireApproved]
@@ -114,11 +113,11 @@ namespace TagBot.Modules
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
             if (targetTag is null)
             {
-                await _message.SendMessage(Context, "Tag could not be found");
+                await _message.SendMessageAsync(Context, "Tag could not be found");
                 return;
             }
             _service.ModifyTag(Context, tagName.ToLower(), newValue);
-            await _message.SendMessage(Context, "Tag has been modified");
+            await _message.SendMessageAsync(Context, "Tag has been modified");
         }
 
         [Command("approve"), Name("Approve User"), Summary("Add a user to the approved users list. This requires the bot owner"), RequireOwner]
@@ -127,11 +126,11 @@ namespace TagBot.Modules
             var current = _service.GetApproved(Context.Guild.Id);
             if (current.Contains(toApprove.Id))
             {
-                await _message.SendMessage(Context, "This user is already approved");
+                await _message.SendMessageAsync(Context, "This user is already approved");
                 return;
             }
             _service.AddApproved(Context, toApprove.Id);
-            await _message.SendMessage(Context, "User has been approved");
+            await _message.SendMessageAsync(Context, "User has been approved");
         }
 
         [Command("unapprove"), Name("Unapprove User"), Summary("Remove a user from the approved users list. This requires the bot owner"), RequireOwner]
@@ -140,18 +139,18 @@ namespace TagBot.Modules
             var current = _service.GetApproved(Context.Guild.Id);
             if (!current.Contains(toUnapprove.Id))
             {
-                await _message.SendMessage(Context, "This user isn't approved", null);
+                await _message.SendMessageAsync(Context, "This user isn't approved");
                 return;
             }
             _service.RemoveApproved(Context, toUnapprove.Id);
-            await _message.SendMessage(Context, "User has been unapproved");
+            await _message.SendMessageAsync(Context, "User has been unapproved");
         }
 
         [Command("approved"), Name("List Approved"), Summary("See all of the approved users for this guild")]
         public async Task ListApproved()
         {
             var users = _service.GetApproved(Context.Guild.Id).Select(x => $"{Context.Guild.GetUser(x).Nickname ?? Context.Guild.GetUser(x).Username}");
-            await _message.SendMessage(Context, $"Approved users are:\n{string.Join(", ", users)}");
+            await _message.SendMessageAsync(Context, $"Approved users are:\n{string.Join(", ", users)}");
         }
 
         [Command("cleanse"), Alias("c"), Name("Cleanse Messages"), Summary("Removes all the response my Eevee Bot to you in the last 5 minutes")]

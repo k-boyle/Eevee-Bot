@@ -2,6 +2,7 @@
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TagBot.Entities;
 
@@ -10,77 +11,57 @@ namespace TagBot.Services
     public class MessageService
     {
         private readonly List<MessageModel> _messages = new List<MessageModel>();
-        private readonly Dictionary<ulong, ulong?> _messageCache = new Dictionary<ulong, ulong?>();
-        private ulong _currentId;
-        private bool _editCmd;
+        private ulong _currentMessage;
 
-        public async Task SendMessage(SocketCommandContext context, string message, Embed embed = null)
+        public async Task SendMessageAsync(SocketCommandContext context, string message, Embed embed = null)
         {
-            MessagePurge();
-            if (_editCmd)
+            CleanseOldMessages();
+            if (_messages.Any(x => x.ExecutingMessageId == _currentMessage))
             {
-                var idToEdit = _messageCache[_currentId].Value;
-                var fetchedMessage = context.Channel.GetCachedMessage(idToEdit) ?? await context.Channel.GetMessageAsync(idToEdit);
-                if (fetchedMessage is null) return;
-                await (fetchedMessage as IUserMessage).ModifyAsync(x => x.Content = message);
-                return;
+                var targetMessage = _messages.FirstOrDefault(x => x.ExecutingMessageId == _currentMessage);
+                var retrievedMessage = context.Channel.GetCachedMessage(targetMessage.MessageId) ??
+                                       await context.Channel.GetMessageAsync(targetMessage.MessageId);
+                if (retrievedMessage is null) return;
+                await (retrievedMessage as IUserMessage).ModifyAsync(x =>
+                {
+                    x.Content = message;
+                    x.Embed = embed;
+                });
             }
-            var sentMessage = await context.Channel.SendMessageAsync(message, embed: embed);
-            _messages.Add(new MessageModel(context.User.Id, context.Channel.Id, sentMessage.Id, sentMessage.CreatedAt));
-            _messageCache[_currentId] = sentMessage.Id;
+            else
+            {
+                var sentMessage = await context.Channel.SendMessageAsync(message, embed: embed);
+                var newMessage = new MessageModel(_currentMessage, context.User.Id, context.Channel.Id, sentMessage.Id, sentMessage.CreatedAt);
+                _messages.Add(newMessage);
+            }
         }
 
         public async Task ClearMessages(SocketCommandContext context)
         {
-            MessagePurge();
-            var deletedMessages = new List<MessageModel>();
-            foreach (var msg in _messages)
+            CleanseOldMessages();
+            var foundMessages = _messages.Where(x => x.UserId == context.User.Id && x.ChannelId == context.Channel.Id).ToList();
+            foreach (var foundMessage in foundMessages)
             {
-                if (msg.UserId != context.User.Id || msg.ChannelId != context.Channel.Id) continue;
-                var message = context.Channel.GetCachedMessage(msg.MessageId) ?? await context.Channel.GetMessageAsync(msg.MessageId);
-                await context.Channel.DeleteMessageAsync(message);
-                deletedMessages.Add(msg);
-            }
-
-            foreach (var deleted in deletedMessages)
-            {
-                _messages.Remove(deleted);
+                _messages.Remove(foundMessage);
+                var retrievedMessage = context.Channel.GetCachedMessage(foundMessage.MessageId) ??
+                                       await context.Channel.GetMessageAsync(foundMessage.MessageId);
+                if (retrievedMessage == null) continue;
+                await retrievedMessage.DeleteAsync();
             }
         }
 
-        private void MessagePurge()
+        private void CleanseOldMessages()
         {
-            var toDelete = new List<MessageModel>();
-            foreach (var msg in _messages)
+            var oldMessages = _messages.Where(x => x.CreatedAt.AddMinutes(5) < DateTime.UtcNow).ToList();
+            foreach (var oldMessage in oldMessages)
             {
-                if (DateTime.UtcNow - msg.CreatedAt > TimeSpan.FromMinutes(5))
-                {
-                    toDelete.Add(msg);
-                }
-            }
-
-            foreach (var deleted in toDelete)
-            {
-                _messages.Remove(deleted);
+                _messages.Remove(oldMessage);
             }
         }
 
-        public void MessageReceived(ulong senderMessageId)
+        public void SetCurrentMessage(ulong receivedMessageId)
         {
-            _currentId = 0;
-            _editCmd = false;
-            if (_messageCache.ContainsKey(senderMessageId))
-            {
-                if(_messageCache[senderMessageId] != null)
-                    _editCmd = true;
-                return;
-            }
-            _messageCache.Add(senderMessageId, null);
-        }
-
-        public void CommandReceived(ulong commandMessageId)
-        {
-            _currentId = commandMessageId;
+            _currentMessage = receivedMessageId;
         }
     }
 }

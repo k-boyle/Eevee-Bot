@@ -1,11 +1,10 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Threading.Tasks;
-using Discord;
-using Microsoft.Extensions.DependencyInjection;
 using TagBot.Services;
 
 namespace TagBot
@@ -43,12 +42,11 @@ namespace TagBot
 
                 var context = new SocketCommandContext(_client, message);
                 var messageService = _services.GetService<MessageService>();
-                messageService.MessageReceived(message.Id);
+                messageService.SetCurrentMessage(message.Id);
 
                 var argPos = 0;
                 if (context.Message.HasStringPrefix("ev!", ref argPos))
                 {
-                    messageService.CommandReceived(message.Id);
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
                     {
