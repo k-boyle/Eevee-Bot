@@ -66,7 +66,7 @@ namespace TagBot.Modules
         [Command("tags"), Name("List Tags"), Summary("Lists all the tags for the guild")]
         public async Task GetTags()
         {
-            var currentTags = _service.GetTags(Context.Guild.Id);
+            var currentTags = _service.GetTags(Context.Guild.Id).OrderBy(x => x.TagName);
             await _message.SendMessage(Context,
                 $"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
         }
@@ -75,29 +75,9 @@ namespace TagBot.Modules
         public async Task GetHelp()
         {
             var availableCommands = _commands.Commands.Where(x => x.Name != "help");
-
-            var builder = new EmbedBuilder
-            {
-                Title = $"{Context.Client.CurrentUser.Username}'s help",
-                Author = new EmbedAuthorBuilder
-                {
-                    IconUrl = Context.User.GetAvatarUrl() ?? Context.User.GetDefaultAvatarUrl(),
-                    Name = (Context.User as SocketGuildUser).Nickname ?? Context.User.Username
-                },
-                Color = Color.Blue,
-                ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl() ?? Context.Client.CurrentUser.GetDefaultAvatarUrl(),
-                Timestamp = DateTime.UtcNow
-            };
-            foreach (var cmd in availableCommands)
-            {
-                builder.AddField(f =>
-                {
-                    f.Name = $"**{cmd.Name}**";
-                    f.Value = $"Summary: {cmd.Summary}\n" +
-                              $"Usage: ev?{cmd.Aliases.FirstOrDefault()} {(cmd.Parameters.Any() ? $"{string.Join(" ", cmd.Parameters.Select(y => $"`{y.Name}`{(y.Summary != null ? $"\n{y.Name} - {y.Summary}" : "")}"))}" : "")}";
-                });
-            }
-            await _message.SendMessage(Context, null, builder.Build());
+            var i = 0;
+            await _message.SendMessage(Context,
+                $"Available Commands:\n{string.Join("\n", availableCommands.Select(x => $"{++i} - ev?**{x.Aliases.FirstOrDefault()}** {(x.Parameters.Any() ? $"{string.Join(" ", x.Parameters.Select(y => $"`{y.Name}`"))}" : "")}"))}");
         }
 
         [Command("create"), Name("Create Tag"), Summary("Creates a new tag for the guild. This requires an approved user"), RequireApproved]
