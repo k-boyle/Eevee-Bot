@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using TagBot.Preconditions;
@@ -28,41 +27,28 @@ namespace TagBot.Modules
             var targetTag = currentTags.FirstOrDefault(x => x.TagName == tagName.ToLower());
             if (targetTag is null)
             {
-                var levenTags = currentTags.Where(x => CalcLevenshteinDistance(tagName.ToLower(), x.TagName) < 5);
+                var levenTags = currentTags.Where(x => TagHelper.CalcLevenshteinDistance(tagName.ToLower(), x.TagName) < 5);
                 var containsTags = currentTags.Where(x => x.TagName.Contains(tagName.ToLower()));
                 var totalTags = levenTags.Union(containsTags);
 
-                await _message.SendMessageAsync(Context, $"{(totalTags.Any() ? $"Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}", null);
+                await _message.SendMessageAsync(Context, $"{(totalTags.Any() ? "Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}");
                 return;
             }
 
-            await _message.SendMessageAsync(Context, targetTag.TagValue, null);
+            await _message.SendMessageAsync(Context, targetTag.TagValue);
         }
 
-        private static int CalcLevenshteinDistance(string a, string b)
+        [Command("search"), Alias("s"), Summary("Search for a tag")]
+        public async Task SearchTags([Name("Search For"), Summary("Your search query"), Remainder] string tagName)
         {
-            if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b)) return 0;
-
-            var lengthA = a.Length;
-            var lengthB = b.Length;
-            var distances = new int[lengthA + 1, lengthB + 1];
-            for (var i = 0; i <= lengthA; distances[i, 0] = i++) ;
-            for (var j = 0; j <= lengthB; distances[0, j] = j++) ;
-
-            for (var i = 1; i <= lengthA; i++)
-            for (var j = 1; j <= lengthB; j++)
-            {
-                var cost = b[j - 1] == a[i - 1] ? 0 : 1;
-                distances[i, j] = Math.Min
-                (
-                    Math.Min(distances[i - 1, j] + 1, distances[i, j - 1] + 1),
-                    distances[i - 1, j - 1] + cost
-                );
-            }
-            return distances[lengthA, lengthB];
+            var currentTags = _service.GetTags(Context.Guild.Id);
+            var levenTags = currentTags.Where(x => TagHelper.CalcLevenshteinDistance(tagName.ToLower(), x.TagName) < 5);
+            var containsTags = currentTags.Where(x => x.TagName.Contains(tagName.ToLower()));
+            var totalTags = levenTags.Union(containsTags);
+            await _message.SendMessageAsync(Context, $"{(totalTags.Any() ? "Tags found;\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}");
         }
 
-        [Command("tags"), Name("List Tags"), Summary("Lists all the tags for the guild")]
+        [Command("tags"), Alias("l"), Name("List Tags"), Summary("Lists all the tags for the guild")]
         public async Task GetTags()
         {
             var currentTags = _service.GetTags(Context.Guild.Id).OrderBy(x => x.TagName);
@@ -70,7 +56,7 @@ namespace TagBot.Modules
                 $"{(currentTags.Any() ? $"Available tags\n" + $"{string.Join(", ", currentTags.Select(x => $"{x.TagName}"))}" : "No available tags")}");
         }
 
-        [Command("help")]
+        [Command("help"), Alias("h")]
         public async Task GetHelp()
         {
             var availableCommands = _commands.Commands.Where(x => x.Name != "help");
@@ -121,7 +107,7 @@ namespace TagBot.Modules
         }
 
         [Command("approve"), Name("Approve User"), Summary("Add a user to the approved users list. This requires the bot owner"), RequireOwner]
-        public async Task ApproveUser([Name("User To Approve"), Summary("The mention/name/id of the uder you want to approve"), Remainder]SocketGuildUser toApprove)
+        public async Task ApproveUser([Name("User To Approve"), Summary("The mention/name/id of the user you want to approve"), Remainder]SocketGuildUser toApprove)
         {
             var current = _service.GetApproved(Context.Guild.Id);
             if (current.Contains(toApprove.Id))
@@ -134,7 +120,7 @@ namespace TagBot.Modules
         }
 
         [Command("unapprove"), Name("Unapprove User"), Summary("Remove a user from the approved users list. This requires the bot owner"), RequireOwner]
-        public async Task UnapproveUser([Name("User To Unapprove"), Summary("The mention/name/id of the uder you want to unapprove"), Remainder]SocketGuildUser toUnapprove)
+        public async Task UnapproveUser([Name("User To Unapprove"), Summary("The mention/name/id of the user you want to unapprove"), Remainder]SocketGuildUser toUnapprove)
         {
             var current = _service.GetApproved(Context.Guild.Id);
             if (!current.Contains(toUnapprove.Id))
@@ -149,11 +135,11 @@ namespace TagBot.Modules
         [Command("approved"), Name("List Approved"), Summary("See all of the approved users for this guild")]
         public async Task ListApproved()
         {
-            var users = _service.GetApproved(Context.Guild.Id).Select(x => $"{Context.Guild.GetUser(x).Nickname ?? Context.Guild.GetUser(x).Username}");
+            var users = _service.GetApproved(Context.Guild.Id).Select(x => $"`{(Context.Guild.GetUser(x).Nickname ?? Context.Guild.GetUser(x).Username).Replace("`", "")}`");
             await _message.SendMessageAsync(Context, $"Approved users are:\n{string.Join(", ", users)}");
         }
 
-        [Command("cleanse"), Alias("c"), Name("Cleanse Messages"), Summary("Removes all the response my Eevee Bot to you in the last 5 minutes")]
+        [Command("cleanse"), Alias("c"), Name("Cleanse Messages"), Summary("Removes all the responses by Eevee Bot to you in the last 5 minutes")]
         public async Task Cleanse()
         {
             await _message.ClearMessages(Context);

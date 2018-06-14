@@ -45,7 +45,7 @@ namespace TagBot
                 messageService.SetCurrentMessage(message.Id);
 
                 var argPos = 0;
-                if (context.Message.HasStringPrefix("ev!", ref argPos))
+                if (context.Message.HasStringPrefix("ev?", ref argPos))
                 {
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
@@ -53,7 +53,7 @@ namespace TagBot
                         switch (result.Error)
                         {
                             case CommandError.UnmetPrecondition:
-                                await context.Channel.SendMessageAsync(result.ErrorReason);
+                                await messageService.SendMessageAsync(context, result.ErrorReason);
                                 break;
                             default:
                                 var channel = context.Client.GetChannel(443162366360682508) as SocketTextChannel;
