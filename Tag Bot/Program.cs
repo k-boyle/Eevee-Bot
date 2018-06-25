@@ -4,64 +4,59 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using TagBot.Handlers;
 using TagBot.Services;
 
 namespace TagBot
 {
     internal class Program
     {
-        private static void Main()
-            => new Program().StartAsync().GetAwaiter().GetResult();
+        private static IServiceProvider _services;
 
-        private DiscordSocketClient _client;
-        private CommandService _commands;
-        private IServiceProvider _services;
-
-        private async Task StartAsync()
+        private static async Task Main()
         {
-            _client = new DiscordSocketClient(new DiscordSocketConfig
+            var client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
                 LogLevel = LogSeverity.Verbose,
                 MessageCacheSize = 20
             });
 
-            _client.Log += LogMethod;
-            _client.JoinedGuild += NewGuild;
+            client.Log += LogMethod;
+            client.JoinedGuild += NewGuild;
 
-            _commands = new CommandService(new CommandServiceConfig
+            var commands = new CommandService(new CommandServiceConfig
             {
                 CaseSensitiveCommands = false,
                 LogLevel = LogSeverity.Verbose
             });
 
-            _commands.Log += LogMethod;
+            commands.Log += LogMethod;
 
             _services = new ServiceCollection()
-                .AddSingleton(_client)
-                .AddSingleton(_commands)
+                .AddSingleton(client)
+                .AddSingleton(commands)
                 .AddSingleton<ReliabilityService>()
                 .AddSingleton<DatabaseService>()
                 .AddSingleton<MessageService>()
                 .AddSingleton<Func<LogMessage, Task>>(LogMethod)
                 .BuildServiceProvider();
 
-            await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("TagBot"));
-            await _client.StartAsync();
+            await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("Tag Bot"));
+            await client.StartAsync();
 
-            _client.Ready += () => 
+            client.Ready += () =>
             {
                 _services.GetService<DatabaseService>().Initialise();
                 return Task.CompletedTask;
             };
-            
-            var handler = new CommandHandler(_client, _commands, _services);
+
+            var handler = new CommandHandler(client, commands, _services);
             await handler.InitiateAsync();
 
             await Task.Delay(-1);
         }
-
-        private async Task NewGuild(SocketGuild arg)
+        private static async Task NewGuild(SocketGuild arg)
         {
             await _services.GetService<DatabaseService>().AddNewGuild(arg.Id);
         }

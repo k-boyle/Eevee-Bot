@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using TagBot.Services;
 
-namespace TagBot
+namespace TagBot.Handlers
 {
     public class CommandHandler
     {
@@ -44,8 +44,11 @@ namespace TagBot
                 var messageService = _services.GetService<MessageService>();
                 messageService.SetCurrentMessage(message.Id);
 
+                if (!context.Guild.CurrentUser.GetPermissions(context.Channel as SocketGuildChannel)
+                    .SendMessages) return;
+
                 var argPos = 0;
-                if (context.Message.HasStringPrefix("ev?", ref argPos))
+                if (context.Message.HasStringPrefix("ev!", ref argPos))
                 {
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
@@ -61,7 +64,6 @@ namespace TagBot
                                 break;
                         }
                     }
-
                 }
             }
         }

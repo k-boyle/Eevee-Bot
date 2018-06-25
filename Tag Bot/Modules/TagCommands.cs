@@ -1,7 +1,9 @@
 ﻿using Discord.Commands;
+using Discord.Net.Helpers;
 using Discord.WebSocket;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using TagBot.Preconditions;
 using TagBot.Services;
 
@@ -34,7 +36,7 @@ namespace TagBot.Modules
                 await _message.SendMessageAsync(Context, $"{(totalTags.Any() ? "Tag not found did you mean?\n" + $"{string.Join(", ", totalTags.Select(x => $"{x.TagName}"))}" : "No tags found")}");
                 return;
             }
-
+            
             await _message.SendMessageAsync(Context, targetTag.TagValue);
         }
 
