@@ -328,3 +328,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+TagBot/Octokit.deps.json
+TagBot/Octokit.dll
+TagBot/Octokit.xml

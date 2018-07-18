@@ -1,9 +1,7 @@
 ﻿using Discord.Commands;
-using Discord.Net.Helpers;
 using Discord.WebSocket;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 using TagBot.Preconditions;
 using TagBot.Services;
 

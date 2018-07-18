@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using TagBot.Handlers;
 using TagBot.Services;
+using Octokit;
 
 namespace TagBot
 {
@@ -15,6 +16,10 @@ namespace TagBot
 
         private static async Task Main()
         {
+            var gitClient = new GitHubClient(new ProductHeaderValue("eevee-bot"));
+            var tokenAuth = new Credentials(Environment.GetEnvironmentVariable("GitToken"));
+            gitClient.Credentials = tokenAuth;
+
             var client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
@@ -36,13 +41,17 @@ namespace TagBot
             _services = new ServiceCollection()
                 .AddSingleton(client)
                 .AddSingleton(commands)
+                .AddSingleton(gitClient)
                 .AddSingleton<ReliabilityService>()
                 .AddSingleton<DatabaseService>()
                 .AddSingleton<MessageService>()
+                .AddSingleton<RequestsService>()
+                .AddSingleton<CommandHandler>()
+                .AddSingleton<HasteBinHandler>()
                 .AddSingleton<Func<LogMessage, Task>>(LogMethod)
                 .BuildServiceProvider();
 
-            await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("Tag Bot"));
+            await client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("TagBot"));
             await client.StartAsync();
 
             client.Ready += () =>
@@ -51,8 +60,7 @@ namespace TagBot
                 return Task.CompletedTask;
             };
 
-            var handler = new CommandHandler(client, commands, _services);
-            await handler.InitiateAsync();
+            await _services.GetService<CommandHandler>().InitiateAsync();
 
             await Task.Delay(-1);
         }
